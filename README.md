@@ -4,7 +4,7 @@ English | [简体中文](docs/README_zh-CN.md) | [繁體中文](docs/README_zh-T
 
 <img src="./docs/images/banner.png" width="320px"  alt="PDF2ZH"/>
 
-<h2 id="title">PDFMathTranslate</h2>
+<h2 id="title">PDFMathTranslate+argostranslate</h2>
 
 <p>
   <!-- PyPI -->
@@ -21,7 +21,7 @@ English | [简体中文](docs/README_zh-CN.md) | [繁體中文](docs/README_zh-T
     <img src="https://img.shields.io/badge/%F0%9F%A4%97-Online%20Demo-FF9E0D"></a>
   <a href="https://www.modelscope.cn/studios/AI-ModelScope/PDFMathTranslate">
     <img src="https://img.shields.io/badge/ModelScope-Demo-blue"></a>
-  <a href="https://github.com/Byaidu/PDFMathTranslate/pulls">
+  <a href="https://bgithub.xyz/Byaidu/PDFMathTranslate/pulls">
     <img src="https://img.shields.io/badge/contributions-welcome-green"></a>
   <a href="https://t.me/+Z9_SgnxmsmA5NzBl">
     <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=flat-squeare&logo=telegram&logoColor=white"></a>
@@ -346,7 +346,7 @@ This work has been accepted by the *Proceedings of the 2025 Conference on Empiri
 
 <h3 id="contrib">5.3 Contributors</h3>
 
-<a href="https://github.com/Byaidu/PDFMathTranslate/graphs/contributors">
+<a href="https://bgithub.xyz/Byaidu/PDFMathTranslate/graphs/contributors">
   <img src="https://opencollective.com/PDFMathTranslate/contributors.svg?width=890&button=false" />
 </a>
 
