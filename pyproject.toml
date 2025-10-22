@@ -36,19 +36,10 @@ dependencies = [
     "fontTools",
     "babeldoc>=0.1.22, <0.3.0",
     "rich",
-    "argostranslate"
-]
-
-[project.optional-dependencies]
-backend = [
+    "argostranslate",
     "flask",
     "celery",
-    "redis"
-]
-argostranslate = [
-    "argostranslate"
-]
-mcp = [
+    "redis",
     "mcp>=1.6.0",
 ]
 
@@ -75,8 +66,6 @@ pdf2zh = "pdf2zh.pdf2zh:main"
 [tool.flake8]
 ignore = ["E203", "E261", "E501", "W503", "E741"]
 max-line-length = 88
-
-
 
 [bumpver]
 current_version = "1.9.11"
