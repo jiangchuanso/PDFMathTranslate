@@ -20,8 +20,8 @@ dependencies = [
     "ollama",
     "xinference-client",
     "deepl",
-    "openai",
-    "azure-ai-translation-text",
+    "openai>=1.0.0",
+    "azure-ai-translation-text<=1.0.1",
     # 5.36 has a bug, webui starts with a white screen
     "gradio<5.36",
     "huggingface_hub",
@@ -30,18 +30,23 @@ dependencies = [
     "opencv-python-headless",
     "tencentcloud-sdk-python-tmt",
     "pdfminer-six==20250416",
-    "gradio_pdf",
+    "gradio_pdf>=0.0.21",
     "pikepdf",
-    "peewee",
+    "peewee>=3.17.8",
     "fontTools",
-    "babeldoc<0.3.0",
+    "babeldoc>=0.1.22, <0.3.0",
     "rich",
     "argostranslate",
-    "xx-sent-ud-sm",
+]
+
+[project.optional-dependencies]
+backend = [
     "flask",
     "celery",
-    "redis",
-    "mcp",
+    "redis"
+]
+mcp = [
+    "mcp>=1.6.0",
 ]
 
 [dependency-groups]
@@ -51,11 +56,11 @@ dev = [
     "pre-commit",
     "pytest",
     "build",
-    "bumpver",
+    "bumpver>=2024.1130",
 ]
 
 [project.urls]
-Homepage = "https://bgithub.xyz/Byaidu/PDFMathTranslate"
+Homepage = "https://github.com/Byaidu/PDFMathTranslate"
 
 [build-system]
 requires = ["hatchling"]
