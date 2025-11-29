@@ -162,7 +162,7 @@ class BaseTranslator:
 
 class GoogleTranslator(BaseTranslator):
     name = "google"
-    lang_map = {"zh": "zh-Hans"}
+    lang_map = {"zh": "zh-CN"}
 
     def __init__(self, lang_in, lang_out, model, ignore_cache=False, **kwargs):
         super().__init__(lang_in, lang_out, model, ignore_cache)
@@ -182,15 +182,14 @@ class GoogleTranslator(BaseTranslator):
             "target": self.lang_out,
         }
         response = self.session.post(
-            self.endpoint,
-            json=payload,
-            headers=self.headers,
+            self.endpoint, headers=self.headers, json=payload
         )
         if response.status_code == 400:
             result = "IRREPARABLE TRANSLATION ERROR"
         else:
             response.raise_for_status()
-            result = response.json()["data"]["translations"][0]["translatedText"]
+            data = response.json()
+            result = data["data"]["translations"][0]["translatedText"]
         return remove_control_characters(result)
 
 
