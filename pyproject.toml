@@ -37,7 +37,6 @@ dependencies = [
     "babeldoc>=0.1.22, <0.3.0",
     "rich",
     "argostranslate",
-    "xx_sent_ud_sm",
 ]
 
 [project.optional-dependencies]
@@ -61,7 +60,7 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://lgithub.xyz/Byaidu/PDFMathTranslate"
+Homepage = "https://github.com/Byaidu/PDFMathTranslate"
 
 [build-system]
 requires = ["hatchling"]
