@@ -171,7 +171,7 @@ class GoogleTranslator(BaseTranslator):
     def __init__(self, lang_in, lang_out, model, ignore_cache=False, **kwargs):
         super().__init__(lang_in, lang_out, model, ignore_cache)
         self.session = requests.Session()
-        self.endpoint = "https://translate.google.com/m "
+        self.endpoint = "https://translate.google.com/m"
         self.headers = {
             "User-Agent": "Mozilla/4.0 (compatible;MSIE 6.0;Windows NT 5.1;SV1;.NET CLR 1.1.4322;.NET CLR 2.0.50727;.NET CLR 3.0.04506.30)"  # noqa: E501
         }
@@ -192,6 +192,7 @@ class GoogleTranslator(BaseTranslator):
             response.raise_for_status()
             result = html.unescape(re_result[0])
         return remove_control_characters(result)
+
 
 class BingTranslator(BaseTranslator):
     # https://github.com/immersive-translate/old-immersive-translate/blob/6df13da22664bea2f51efe5db64c63aca59c4e79/src/background/translationService.js
