@@ -237,9 +237,7 @@ class DeepLTranslator(BaseTranslator):
     }
     lang_map = {"zh": "zh-Hans"}
 
-    def __init__(
-        self, lang_in, lang_out, model, envs=None, ignore_cache=False, **kwargs
-    ):
+    def __init__(self, lang_in, lang_out, model, envs=None, ignore_cache=False, **kwargs):
         self.set_envs(envs)
         super().__init__(lang_in, lang_out, model, ignore_cache)
         auth_key = self.envs["DEEPL_AUTH_KEY"]
@@ -259,9 +257,7 @@ class DeepLXTranslator(BaseTranslator):
     }
     lang_map = {"zh": "zh-Hans"}
 
-    def __init__(
-        self, lang_in, lang_out, model, envs=None, ignore_cache=False, **kwargs
-    ):
+    def __init__(self, lang_in, lang_out, model, envs=None, ignore_cache=False, **kwargs):
         self.set_envs(envs)
         super().__init__(lang_in, lang_out, model, ignore_cache)
         self.endpoint = self.envs["DEEPLX_ENDPOINT"]
@@ -282,7 +278,7 @@ class DeepLXTranslator(BaseTranslator):
                 "text": text,
                 "html": False,
             },
-            verify=False, 
+            verify=False,
         )
         response.raise_for_status()
         return response.json()["result"]
