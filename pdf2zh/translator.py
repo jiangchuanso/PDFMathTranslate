@@ -166,57 +166,32 @@ class BaseTranslator:
 
 class GoogleTranslator(BaseTranslator):
     name = "google"
-    # Updated mapping for local API (zh-Hans instead of zh-CN)
-    lang_map = {"zh": "zh-Hans"}
+    lang_map = {"zh": "zh-CN"}
 
     def __init__(self, lang_in, lang_out, model, ignore_cache=False, **kwargs):
         super().__init__(lang_in, lang_out, model, ignore_cache)
         self.session = requests.Session()
-        # New local API endpoint
-        self.endpoint = "http://127.0.0.1:8989/google/language/translate/v2"
-        # Updated headers for JSON API
+        self.endpoint = "https://translate.google.com/m "
         self.headers = {
-            "accept": "application/json",
-            "Content-Type": "application/json"
+            "User-Agent": "Mozilla/4.0 (compatible;MSIE 6.0;Windows NT 5.1;SV1;.NET CLR 1.1.4322;.NET CLR 2.0.50727;.NET CLR 3.0.04506.30)"  # noqa: E501
         }
 
     def do_translate(self, text):
-        # Apply language code mapping
-        source_lang = self.lang_map.get(self.lang_in, self.lang_in)
-        target_lang = self.lang_map.get(self.lang_out, self.lang_out)
-        
-        # Keep length limit as safety measure (remove if your API doesn't need it)
-        text = text[:5000]
-        
-        # Prepare JSON payload
-        payload = {
-            "format": "text",
-            "q": text,
-            "source": source_lang,
-            "target": target_lang
-        }
-        
-        # Make POST request with JSON body
-        response = self.session.post(
+        text = text[:5000]  # google translate max length
+        response = self.session.get(
             self.endpoint,
-            json=payload,
-            headers=self.headers
+            params={"tl": self.lang_out, "sl": self.lang_in, "q": text},
+            headers=self.headers,
         )
-        
-        # Handle errors (preserving original logic)
+        re_result = re.findall(
+            r'(?s)class="(?:t0|result-container)">(.*?)<', response.text
+        )
         if response.status_code == 400:
-            return "IRREPARABLE TRANSLATION ERROR"
-        
-        response.raise_for_status()
-        
-        # Parse JSON response
-        try:
-            result_data = response.json()
-            # Adjust this path if your API returns a different JSON structure
-            translated_text = result_data["data"]["translations"][0]["translatedText"]
-            return remove_control_characters(translated_text)
-        except (KeyError, IndexError, TypeError) as e:
-            raise Exception(f"Invalid response format from translation API: {e}")
+            result = "IRREPARABLE TRANSLATION ERROR"
+        else:
+            response.raise_for_status()
+            result = html.unescape(re_result[0])
+        return remove_control_characters(result)
 
 class BingTranslator(BaseTranslator):
     # https://github.com/immersive-translate/old-immersive-translate/blob/6df13da22664bea2f51efe5db64c63aca59c4e79/src/background/translationService.js
