@@ -20,11 +20,8 @@ from tencentcloud.tmt.v20180321.models import (
     TextTranslateResponse,
 )
 from tencentcloud.tmt.v20180321.tmt_client import TmtClient
-
 from pdf2zh.cache import TranslationCache
 from pdf2zh.config import ConfigManager
-
-
 from tenacity import retry, retry_if_exception_type
 from tenacity import stop_after_attempt
 from tenacity import wait_exponential
@@ -163,7 +160,6 @@ class BaseTranslator:
             id
         ) + self.get_rich_text_right_placeholder(id)
 
-
 class GoogleTranslator(BaseTranslator):
     name = "google"
     lang_map = {"zh": "zh-Hans"}
@@ -174,20 +170,21 @@ class GoogleTranslator(BaseTranslator):
         self.endpoint = "http://localhost:8989/google/language/translate/v2"
         self.headers = {
             "accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
     def do_translate(self, text):
         text = text[:5000]
+        payload = {
+            "format": "text",
+            "q": text,
+            "source": self.lang_in,
+            "target": self.lang_out,
+        }
         response = self.session.post(
             self.endpoint,
-            json={
-                "format": "text",
-                "q": text,
-                "source": self.lang_in,
-                "target": self.lang_out
-            },
-            headers=self.headers
+            json=payload,
+            headers=self.headers,
         )
         if response.status_code == 400:
             result = "IRREPARABLE TRANSLATION ERROR"
