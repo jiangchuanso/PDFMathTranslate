@@ -24,14 +24,18 @@ from tencentcloud.tmt.v20180321.tmt_client import TmtClient
 from pdf2zh.cache import TranslationCache
 from pdf2zh.config import ConfigManager
 
+
 from tenacity import retry, retry_if_exception_type
 from tenacity import stop_after_attempt
 from tenacity import wait_exponential
 
+
 logger = logging.getLogger(__name__)
+
 
 def remove_control_characters(s):
     return "".join(ch for ch in s if unicodedata.category(ch)[0] != "C")
+
 
 class BaseTranslator:
     name = "base"
@@ -159,34 +163,39 @@ class BaseTranslator:
             id
         ) + self.get_rich_text_right_placeholder(id)
 
+
 class GoogleTranslator(BaseTranslator):
     name = "google"
-    lang_map = {"zh": "zh-CN"}
+    lang_map = {"zh": "zh-Hans"}
 
     def __init__(self, lang_in, lang_out, model, ignore_cache=False, **kwargs):
         super().__init__(lang_in, lang_out, model, ignore_cache)
         self.session = requests.Session()
-        self.endpoint = "https://translate.google.com/m"
+        self.endpoint = "http://localhost:8989/google/language/translate/v2"
         self.headers = {
-            "User-Agent": "Mozilla/4.0 (compatible;MSIE 6.0;Windows NT 5.1;SV1;.NET CLR 1.1.4322;.NET CLR 2.0.50727;.NET CLR 3.0.04506.30)"  # noqa: E501
+            "accept": "application/json",
+            "Content-Type": "application/json"
         }
 
     def do_translate(self, text):
-        text = text[:5000]  # google translate max length
-        response = self.session.get(
+        text = text[:5000]
+        response = self.session.post(
             self.endpoint,
-            params={"tl": self.lang_out, "sl": self.lang_in, "q": text},
-            headers=self.headers,
-        )
-        re_result = re.findall(
-            r'(?s)class="(?:t0|result-container)">(.*?)<', response.text
+            json={
+                "format": "text",
+                "q": text,
+                "source": self.lang_in,
+                "target": self.lang_out
+            },
+            headers=self.headers
         )
         if response.status_code == 400:
             result = "IRREPARABLE TRANSLATION ERROR"
         else:
             response.raise_for_status()
-            result = html.unescape(re_result[0])
+            result = response.json()["data"]["translations"][0]["translatedText"]
         return remove_control_characters(result)
+
 
 class BingTranslator(BaseTranslator):
     # https://github.com/immersive-translate/old-immersive-translate/blob/6df13da22664bea2f51efe5db64c63aca59c4e79/src/background/translationService.js
@@ -229,6 +238,7 @@ class BingTranslator(BaseTranslator):
         response.raise_for_status()
         return response.json()[0]["translations"][0]["text"]
 
+
 class DeepLTranslator(BaseTranslator):
     # https://github.com/DeepLcom/deepl-python
     name = "deepl"
@@ -251,10 +261,12 @@ class DeepLTranslator(BaseTranslator):
         )
         return response.text
 
+
 class DeepLXTranslator(BaseTranslator):
+    # https://deeplx.owo.network/endpoints/free.html
     name = "deeplx"
     envs = {
-        "DEEPLX_ENDPOINT": "http://localhost:8989/translate",
+        "DEEPLX_ENDPOINT": "https://api.deepl.com/translate",
         "DEEPLX_ACCESS_TOKEN": None,
     }
     lang_map = {"zh": "zh-Hans"}
@@ -274,15 +286,15 @@ class DeepLXTranslator(BaseTranslator):
         response = self.session.post(
             self.endpoint,
             json={
-                "from": self.lang_in,
-                "to": self.lang_out,
+                "source_lang": self.lang_in,
+                "target_lang": self.lang_out,
                 "text": text,
-                "html": False,
             },
-            verify=False,
+            verify=False,  # noqa: S506
         )
         response.raise_for_status()
         return response.json()["data"]
+
 
 class OllamaTranslator(BaseTranslator):
     # https://github.com/ollama/ollama-python
@@ -335,6 +347,7 @@ class OllamaTranslator(BaseTranslator):
         """
         return re.sub(r"^<think>.+?</think>", "", content, count=1, flags=re.DOTALL)
 
+
 class XinferenceTranslator(BaseTranslator):
     # https://github.com/xorbitsai/inference
     name = "xinference"
@@ -384,6 +397,7 @@ class XinferenceTranslator(BaseTranslator):
             except Exception as e:
                 print(e)
         raise Exception("All models failed")
+
 
 class OpenAITranslator(BaseTranslator):
     # https://github.com/openai/openai-python
@@ -453,6 +467,7 @@ class OpenAITranslator(BaseTranslator):
     def get_rich_text_right_placeholder(self, id: int):
         return self.get_formular_placeholder(id + 1)
 
+
 class AzureOpenAITranslator(BaseTranslator):
     name = "azure-openai"
     envs = {
@@ -501,6 +516,7 @@ class AzureOpenAITranslator(BaseTranslator):
         )
         return response.choices[0].message.content.strip()
 
+
 class ModelScopeTranslator(OpenAITranslator):
     name = "modelscope"
     envs = {
@@ -536,6 +552,7 @@ class ModelScopeTranslator(OpenAITranslator):
         )
         self.prompttext = prompt
         self.add_cache_impact_parameters("prompt", self.prompt("", self.prompttext))
+
 
 class ZhipuTranslator(OpenAITranslator):
     # https://bigmodel.cn/dev/api/thirdparty-frame/openai-sdk
@@ -581,6 +598,7 @@ class ZhipuTranslator(OpenAITranslator):
             raise e
         return response.choices[0].message.content.strip()
 
+
 class SiliconTranslator(OpenAITranslator):
     # https://docs.siliconflow.cn/quickstart
     name = "silicon"
@@ -608,6 +626,7 @@ class SiliconTranslator(OpenAITranslator):
         )
         self.prompttext = prompt
         self.add_cache_impact_parameters("prompt", self.prompt("", self.prompttext))
+
 
 class X302AITranslator(OpenAITranslator):
     # https://doc.302.ai/
@@ -637,6 +656,7 @@ class X302AITranslator(OpenAITranslator):
         self.prompttext = prompt
         self.add_cache_impact_parameters("prompt", self.prompt("", self.prompttext))
 
+
 class GeminiTranslator(OpenAITranslator):
     # https://ai.google.dev/gemini-api/docs/openai
     name = "gemini"
@@ -664,6 +684,7 @@ class GeminiTranslator(OpenAITranslator):
         )
         self.prompttext = prompt
         self.add_cache_impact_parameters("prompt", self.prompt("", self.prompttext))
+
 
 class AzureTranslator(BaseTranslator):
     # https://github.com/Azure/azure-sdk-for-python
@@ -698,6 +719,7 @@ class AzureTranslator(BaseTranslator):
         translated_text = response[0].translations[0].text
         return translated_text
 
+
 class TencentTranslator(BaseTranslator):
     # https://github.com/TencentCloud/tencentcloud-sdk-python
     name = "tencent"
@@ -728,6 +750,7 @@ class TencentTranslator(BaseTranslator):
         self.req.SourceText = text
         resp: TextTranslateResponse = self.client.TextTranslate(self.req)
         return resp.TargetText
+
 
 class AnythingLLMTranslator(BaseTranslator):
     name = "anythingllm"
@@ -767,6 +790,7 @@ class AnythingLLMTranslator(BaseTranslator):
 
         if "textResponse" in data:
             return data["textResponse"].strip()
+
 
 class DifyTranslator(BaseTranslator):
     name = "dify"
@@ -808,6 +832,7 @@ class DifyTranslator(BaseTranslator):
 
         # 解析响应
         return response_data.get("answer", "")
+
 
 class ArgosTranslator(BaseTranslator):
     name = "argos"
@@ -860,6 +885,7 @@ class ArgosTranslator(BaseTranslator):
         translatedText = translation.translate(text)
         return translatedText
 
+
 class GrokTranslator(OpenAITranslator):
     # https://docs.x.ai/docs/overview#getting-started
     name = "grok"
@@ -887,6 +913,7 @@ class GrokTranslator(OpenAITranslator):
         )
         self.prompttext = prompt
 
+
 class GroqTranslator(OpenAITranslator):
     name = "groq"
     envs = {
@@ -913,6 +940,7 @@ class GroqTranslator(OpenAITranslator):
         )
         self.prompttext = prompt
 
+
 class DeepseekTranslator(OpenAITranslator):
     name = "deepseek"
     envs = {
@@ -938,6 +966,7 @@ class DeepseekTranslator(OpenAITranslator):
             ignore_cache=ignore_cache,
         )
         self.prompttext = prompt
+
 
 class OpenAIlikedTranslator(OpenAITranslator):
     name = "openailiked"
@@ -974,6 +1003,7 @@ class OpenAIlikedTranslator(OpenAITranslator):
             ignore_cache=ignore_cache,
         )
         self.prompttext = prompt
+
 
 class QwenMtTranslator(OpenAITranslator):
     """
